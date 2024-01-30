@@ -1,0 +1,172 @@
+version: "3"
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /home/cayuga/configies/glueman:/gluetun
+    environment:
+      - VPN_SERVICE_PROVIDER=private internet access
+      - OPENVPN_USER=REDACTED
+      - OPENVPN_PASSWORD=REDACTED
+      - SERVER_REGIONS=Norway
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+      - 8989:8989
+      - 7878:7878
+      - 9696:9696
+      - 6767:6767
+      - 9000:9000
+      - 2121:80
+    restart: always
+      
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+    volumes:
+      - /home/cayuga/configies/qbittorrents:/config
+      - /home/cayuga/teleporter/Downloads:/downloads
+    restart: always
+    healthcheck:
+      test: "curl -sf https://example.com  || exit 1"
+      interval: 1m
+      timeout: 10s
+      retries: 1
+
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:develop
+    container_name: sonarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Etc/UTC
+    volumes:
+      - /home/cayuga/configies/sonarr:/config
+      - /home/cayuga/teleporter/Shows:/tv #optional
+      - /home/cayuga/teleporter/Downloads:/downloads #optional
+    restart: always
+    healthcheck:
+      test: "curl -sf https://example.com  || exit 1"
+      interval: 1m
+      timeout: 10s
+      retries: 1
+
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:develop
+    container_name: radarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Etc/UTC
+    volumes:
+      - /home/cayuga/configies/radarr:/config
+      - /home/cayuga/teleporter/Movies:/movies #optional
+      - /home/cayuga/teleporter/Downloads:/downloads #optional
+    restart: always
+    healthcheck:
+      test: "curl -sf https://example.com  || exit 1"
+      interval: 1m
+      timeout: 10s
+      retries: 1
+    
+
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Etc/UTC
+    volumes:
+      - /home/cayuga/configies/prowlarr:/config
+    restart: always
+    healthcheck:
+      test: "curl -sf https://example.com  || exit 1"
+      interval: 1m
+      timeout: 10s
+      retries: 1
+
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=Etc/UTC
+    volumes:
+      - /home/cayuga/configies/bazaarr:/config
+      - /home/cayuga/teleporter/Movies:/movies #optional
+      - /home/cayuga/teleporter/Shows:/tv #optional
+    restart: always
+    healthcheck:
+      test: "curl -sf https://example.com  || exit 1"
+      interval: 1m
+      timeout: 10s
+      retries: 1
+
+
+  dashy:
+    container_name: Dashy
+    network_mode: "service:gluetun"
+    image: lissy93/dashy
+
+
+    # Pass in your config file below, by specifying the path on your host machine
+    volumes:
+      - /home/cayuga/teleporter/dashy_conf.yml:/app/public/conf.yml
+      - /home/cayuga/teleporter/icons:/app/public/item-icons
+
+    # Set port that web service will be served on. Keep container port as 80
+
+    # Set any environmental variables
+    environment:
+      - NODE_ENV=production
+    # Specify your user ID and group ID. You can find this by running `id -u` and `id -g`
+      - UID=0
+      - GID=0
+    # Specify restart policy
+    restart: always
+
+  whisperasr:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: whisper
+    network_mode: "service:gluetun"
+    environment:
+      - ASR_MODEL=tiny
+      - ASR_ENGINE=faster_whisper
+    restart: always
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+
+  autoheal:
+    image: willfarrell/autoheal
+    container_name: autoheal
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    environment:
+      - AUTOHEAL_INTERVAL=10
+      - CURL_TIMEOUT=30
+    restart: always
