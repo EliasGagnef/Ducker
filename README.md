@@ -1,6 +1,8 @@
 # Ducker
 My Docker-Compose that includes:
 
+[Dashy](https://github.com/Lissy93/dashy)
+
 [Gluetun (configured to use PIA)](https://github.com/qdm12/gluetun)
 
 [Sonarr](https://github.com/Sonarr/Sonarr)
