@@ -16,3 +16,5 @@ My Docker-Compose that includes:
 [Whisper (Automatically generated subtiles ((with Bazarr)](https://github.com/ahmetoner/whisper-asr-webservice)
 
 [Watchtower](https://github.com/containrrr/watchtower)
+
+[Autoheal](https://github.com/willfarrell/docker-autoheal)
